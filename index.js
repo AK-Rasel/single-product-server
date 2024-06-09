@@ -40,12 +40,10 @@ async function run() {
       res.send(result);
     });
     // add to cart
-
     app.put("/api/v1/cart/:id", async (req, res) => {
       const id = req.params.id;
       const cartData = req.body;
-      const { quantity } = cartData; // Assuming `cartData` contains `id` and `quantity`
-
+      const { quantity } = cartData;
       try {
         const objectId = new ObjectId(id);
 
@@ -54,24 +52,33 @@ async function run() {
         });
 
         if (existingProduct) {
-          // Update the quantity if the product already exists in the cart
-          // console.log("existingProduct");
           const result = await cartDataCollection.updateOne(
             { _id: objectId },
             { $inc: { quantity: parseInt(quantity) } }
           );
-          // console.log("Update result:", result);
+
           res.status(200).send({ message: "Product quantity updated" });
         } else {
-          // Insert the full product data na thake in the cart
-          cartData._id = objectId; // Ensure the _id is set correctly
+          cartData._id = objectId;
           const result = await cartDataCollection.insertOne(cartData);
-          // console.log("Insert result:", result); // Log the result for debugging
+
           res.status(200).send({ message: "Product added to cart" });
         }
       } catch (error) {
-        console.error("Error updating cart:", error); // Log the error for debugging
+        console.error("Error updating cart:", error);
         res.status(500).send({ message: "Error updating cart", error: error });
+      }
+    });
+    // cart delete
+    app.delete("/api/v1/cart/:id", async (req, res) => {
+      const id = req.params.id;
+      // console.log(id);
+      const filterId = { _id: new ObjectId(id) };
+      try {
+        const result = await cartDataCollection.deleteOne(filterId);
+        res.status(200).send({ message: "cart delete successfully" });
+      } catch (error) {
+        res.status(500).send({ message: "Error delete", error: error });
       }
     });
 
