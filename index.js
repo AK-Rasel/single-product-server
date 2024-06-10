@@ -82,6 +82,40 @@ async function run() {
       }
     });
 
+    app.put("/api/v1/cart/quantity/:id", async (req, res) => {
+      const id = req.params.id;
+      const { quantity } = req.body;
+
+      try {
+        const objectId = new ObjectId(id);
+
+        const existingProduct = await cartDataCollection.findOne({
+          _id: objectId,
+        });
+
+        if (existingProduct) {
+          const newQuantity = existingProduct.quantity + quantity;
+          if (newQuantity > 0) {
+            await cartDataCollection.updateOne(
+              { _id: objectId },
+              { $set: { quantity: newQuantity } }
+            );
+            res
+              .status(200)
+              .send({ message: "Product quantity updated", newQuantity });
+          } else {
+            await cartDataCollection.deleteOne({ _id: objectId });
+            res.status(200).send({ message: "Product removed from cart" });
+          }
+        } else {
+          res.status(404).send({ message: "Product not found in cart" });
+        }
+      } catch (error) {
+        console.error("Error updating cart:", error);
+        res.status(500).send({ message: "Error updating cart", error });
+      }
+    });
+
     await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
@@ -91,6 +125,7 @@ async function run() {
     // await client.close();
   }
 }
+
 run().catch(console.dir);
 
 app.get("/", (req, res) => {
