@@ -39,6 +39,12 @@ async function run() {
       const result = await cartDataCollection.find().toArray();
       res.send(result);
     });
+    app.get("/api/v1/cart/:id", async (req, res) => {
+      const id = req.params.id;
+      const filterId = { _id: new ObjectId(id) };
+      const result = await productCollection.findOne(filterId);
+      res.send(result);
+    });
     // add to cart
     app.put("/api/v1/cart/:id", async (req, res) => {
       const id = req.params.id;
@@ -81,7 +87,7 @@ async function run() {
         res.status(500).send({ message: "Error delete", error: error });
       }
     });
-
+    // quantity update
     app.put("/api/v1/cart/quantity/:id", async (req, res) => {
       const id = req.params.id;
       const { quantity } = req.body;
